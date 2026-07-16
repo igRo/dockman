@@ -1,0 +1,30 @@
+name: Integration-Build
+
+on:
+  workflow_dispatch:
+
+  push:
+    branches:
+      - integration
+    paths:
+      - .github/workflows/action-docker.yml
+      - .github/workflows/build-integration.yml
+      - core/**
+      - ui/**
+      - pkg/docker/Dockerfile
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-integration:
+    name: Build Integration
+    uses: ./.github/workflows/action-docker.yml
+    with:
+      version_tag: integration
+      source_branch: ${{ github.ref_name }}
+      is_latest: true
+      title: dockman
+      dockerfile: pkg/docker/Dockerfile
+    secrets: inherit
