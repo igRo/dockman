@@ -9,6 +9,7 @@ export interface UpdateSettingsOption {
 export interface ConfigContextType {
     config: Config
     isLoading: boolean
+    isInitialized: boolean
     updateSettings: (user: Config, opts?: UpdateSettingsOption) => Promise<void>,
     dockYaml: DockmanYaml | null
     fetchDockmanYaml: () => Promise<void>,
@@ -20,7 +21,7 @@ export const ConfigContext = createContext<ConfigContextType | undefined>(undefi
 export function useConfig() {
     const context = useContext(ConfigContext)
     if (!context) {
-        throw new Error('useChangelog must be used within a UserConfigProvider')
+        throw new Error('useConfig must be used within a UserConfigProvider')
     }
     return context
 }

@@ -15,6 +15,7 @@ export function UserConfigProvider({children}: { children: ReactNode }) {
     const {showError, showSuccess} = useSnackbar()
     const [config, setConfig] = useState<Config>({})
     const [isLoading, setIsLoading] = useState(true)
+    const [isInitialized, setIsInitialized] = useState(false)
 
     const [dockYaml, setDockyaml] = useState<DockmanYaml | null>(null)
     const fetchDockYaml = useCallback(async () => {
@@ -41,6 +42,7 @@ export function UserConfigProvider({children}: { children: ReactNode }) {
         await fetchDockYaml()
 
         setIsLoading(false)
+        setIsInitialized(true)
     }, [client, fetchDockYaml])
 
     const updateSettings = useCallback(
@@ -63,6 +65,7 @@ export function UserConfigProvider({children}: { children: ReactNode }) {
     const value: ConfigContextType = {
         config,
         isLoading,
+        isInitialized,
         updateSettings,
         dockYaml,
         fetchDockmanYaml: fetchDockYaml,

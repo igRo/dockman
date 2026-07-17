@@ -3,12 +3,14 @@ import {useFileComponents} from "../state/terminal.tsx";
 import {Box, Button, CircularProgress} from "@mui/material";
 import {deployActionsConfig, useComposeAction} from "../state/compose.tsx";
 import {DockerService} from "../../../gen/docker/v1/docker_pb.ts";
+import {useConfig} from "../../../hooks/config.ts";
 
 export function ComposeActionHeaders({selectedServices, fetchContainers}: {
     selectedServices: string[];
     fetchContainers: () => Promise<void>
 }) {
     const dockerService = useHostClient(DockerService);
+    const {isInitialized} = useConfig();
 
     const runAction = useComposeAction(state => state.runAction)
     const activeAction = useComposeAction(state => state.activeAction)
@@ -28,6 +30,10 @@ export function ComposeActionHeaders({selectedServices, fetchContainers}: {
             () => fetchContainers()
         )
     };
+
+    if (!isInitialized) {
+        return null;
+    }
 
     return (
         <Box sx={{display: 'flex', gap: 2, flexWrap: 'wrap', mb: 3, flexShrink: 0}}>
