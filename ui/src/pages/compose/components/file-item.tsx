@@ -28,8 +28,10 @@ import {useAliasStore, useHostStore, useOpenFiles} from "../state/files.ts";
 import {useConfig} from "../../../hooks/config.ts";
 import {useComposeFileState} from "../state/status.ts";
 import {getContextKey} from "../../../context/tab-context.tsx";
-import type {Status} from "../../../gen/docker/v1/docker_pb.ts";
+import {DockerService, type Status} from "../../../gen/docker/v1/docker_pb.ts";
 import {stripQueryParams} from "../../../lib/strings.ts";
+import {useHostClient} from "../../../lib/api.ts";
+import {deployActionsConfig, useComposeAction} from "../state/compose.tsx";
 
 
 export const useFileDnD = (entry: FsEntry) => {
@@ -117,11 +119,15 @@ const FolderItemDisplay = ({entry, depthIndex}: {
     const openFiles = useOpenFiles(state => state.openFiles)
     const toggle = useOpenFiles(state => state.toggle)
     const {listFiles} = useFiles()
-    const {dockYaml} = useConfig()
+    const {dockYaml, isInitialized} = useConfig()
     const editorUrl = useEditorUrl() // Hook to get editor route helper
 
     const useComposeFolder = (dockYaml?.useComposeFolders ?? false)
     const isComposeFolder = useComposeFolder && !!entry.isComposeFolder;
+
+    const dockerService = useHostClient(DockerService);
+    const runAction = useComposeAction(state => state.runAction);
+    const activeAction = useComposeAction(state => state.activeAction);
 
     const composeFilePath = isComposeFolder ? editorUrl(entry.isComposeFolder) : "";
 
@@ -243,6 +249,37 @@ const FolderItemDisplay = ({entry, depthIndex}: {
                 />
 
                 <StatusIndicator fileStatus={fileStatus}/>
+
+                {isComposeFolder && isInitialized && !dockYaml?.disableComposeQuickActions && (
+                    <Box sx={{display: 'flex', alignItems: 'center', ml: 0.5}}>
+                        {deployActionsConfig.map((action) => (
+                            <Tooltip key={action.name} title={action.name} placement="top" arrow>
+                                <span>
+                                    <IconButton
+                                        size="small"
+                                        disabled={!!activeAction}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            runAction(
+                                                entry.isComposeFolder,
+                                                dockerService[action.rpcName],
+                                                action.name,
+                                                [],
+                                                async () => {},
+                                            );
+                                        }}
+                                        sx={{p: 0.25}}
+                                    >
+                                        {activeAction === action.name ?
+                                            <CircularProgress size={12}/> :
+                                            React.cloneElement(action.icon, {sx: {fontSize: '0.85rem'}})}
+                                    </IconButton>
+                                </span>
+                            </Tooltip>
+                        ))}
+                    </Box>
+                )}
 
                 <IconButton
                     size="small"
